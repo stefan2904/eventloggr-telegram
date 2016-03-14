@@ -5,6 +5,7 @@ from twx.botapi import TelegramBot
 import r3door
 import r3temp
 import config
+import json
 
 
 def setupBot(apitoken):
@@ -14,6 +15,21 @@ def setupBot(apitoken):
     bot = TelegramBot(apitoken)
     bot.update_bot_info().wait()
     return bot
+
+
+def saveBotState(state):
+    with open('state.json', 'w') as fp:
+        json.dump(state, fp)
+
+
+def loadBotState():
+    try:
+        with open('state.json', 'r') as fp:
+            state = json.load(fp)
+    except:
+        state = dict()
+        state['offset'] = 0
+    return state
 
 
 def unsetWebhook(bot):
@@ -61,7 +77,8 @@ def getDoorstatusString():
     locked: %s
     kontakted: %s
     ''' % (
-        status[0], status[1])
+        status[0], status[1]
+    )
 
 
 def match(text, words):
@@ -110,19 +127,18 @@ def logUpdate(update):
         update.message.sender.first_name, update.message.text)
 
 
-def updateLoop(bot):
+def updateLoop(bot, state):
     """
     Retrieves updates in an infinite loop.
     Hands received update to getReplyForUpdate()
     and sends the returned string to the user
     via Telegram.
     """
-    offset = 0
     running = True
     while running:
-        updates = bot.get_updates(offset=offset).wait()
+        updates = bot.get_updates(offset=state['offset']).wait()
         for update in updates:
-            offset = update.update_id + 1
+            state['offset'] = update.update_id + 1
             reply = getReplyForUpdate(update)
             bot.send_message(
                 update.message.sender.id,
@@ -135,7 +151,15 @@ if __name__ == '__main__':
     run this script in an (infinite) loop.
     """
     bot = setupBot(config.APITOKEN)
-    print '> %s ready to rock!' % bot.username
+    state = loadBotState()
+    print '> %s ready to rock! offset = %d' % (
+        bot.username, state['offset'])
     if unsetWebhook(bot):
         print '> successfully unset webhook.'
-    updateLoop(bot)
+    try:
+        updateLoop(bot, state)
+    except KeyboardInterrupt:
+        pass
+    print 'shutting down bot ... ',
+    saveBotState(state)
+    print 'done!'
