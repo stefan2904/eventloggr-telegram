@@ -10,8 +10,12 @@ import json
 class r3bot():
 
     def __init__(self, apitoken):
+        self.log('initializing r3bot ...')
         self.setupBot(apitoken)
         self.__loadBotState()
+
+    def log(self, text):
+        print text
 
     def setupBot(self, apitoken):
         """
