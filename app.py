@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request
-app = Flask(__name__)
+import config
+import r3bot
 
+app = Flask(__name__)
+bot =r3bot(config.APITOKEN)
+bot.initHook(config.HOOKURL)
 
 @app.route('/hook/', methods=['POST'])
 def hook():
-    print request
+    bot.processHookRequest(request)
     return "OK"
 
 
