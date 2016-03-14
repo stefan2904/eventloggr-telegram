@@ -147,8 +147,9 @@ def updateLoop(bot, state):
 
 if __name__ == '__main__':
     """
-    main code
-    run this script in an (infinite) loop.
+    main code.
+    runs this script in an (infinite) loop,
+    until a KeyboardInterrupt is caught.
     """
     bot = setupBot(config.APITOKEN)
     state = loadBotState()
