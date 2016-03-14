@@ -3,7 +3,7 @@
 
 from flask import Flask, request
 import config
-from r3botimport r3bot
+from r3bot import r3bot
 
 app = Flask(__name__)
 bot = r3bot(config.APITOKEN)
