@@ -77,6 +77,9 @@ strings_temp = ['temp', 'temperature', 'temperatur', 'status']
 
 
 def getReplyForMessage(msg, sender):
+    """
+    Does the magic. Returns a string.
+    """
     msgLower = msg.lower()
     if match(msgLower, strings_door):
         return getDoorstatusString()
@@ -87,6 +90,11 @@ def getReplyForMessage(msg, sender):
 
 
 def getReplyForUpdate(update):
+    """
+    Hands the given update to getReplyForMessage()
+    and logs it using logupdate().
+    Returns the returned string.
+    """
     logUpdate(update)
     return getReplyForMessage(
         update.message.text,
@@ -94,11 +102,21 @@ def getReplyForUpdate(update):
 
 
 def logUpdate(update):
+    """
+    Does a quick log of the received message
+    to stdout.
+    """
     print '%s: %s' % (
         update.message.sender.first_name, update.message.text)
 
 
 def updateLoop(bot):
+    """
+    Retrieves updates in an infinite loop.
+    Hands received update to getReplyForUpdate()
+    and sends the returned string to the user
+    via Telegram.
+    """
     offset = 0
     running = True
     while running:
@@ -112,6 +130,10 @@ def updateLoop(bot):
 
 
 if __name__ == '__main__':
+    """
+    main code
+    run this script in an (infinite) loop.
+    """
     bot = setupBot(config.APITOKEN)
     print '> %s ready to rock!' % bot.username
     if unsetWebhook(bot):
