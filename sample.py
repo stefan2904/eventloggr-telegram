@@ -18,11 +18,17 @@ def setupBot(apitoken):
 
 
 def saveBotState(state):
+    """
+    Saves the bot's state to state.json file.
+    """
     with open('state.json', 'w') as fp:
         json.dump(state, fp)
 
 
 def loadBotState():
+    """
+    Loads the bot's state from state.json file.
+    """
     try:
         with open('state.json', 'r') as fp:
             state = json.load(fp)
