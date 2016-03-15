@@ -12,7 +12,7 @@ bot.initHook(config.HOOKURL)
 
 @app.route('/hook/', methods=['POST'])
 def hook():
-    bot.processHookRequest(request)
+    bot.processHookRequest(request.get_json())
     return "OK"
 
 
