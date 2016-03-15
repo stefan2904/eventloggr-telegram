@@ -34,18 +34,18 @@ class r3bot():
         self.log('received request on HOOK:')
         print request
         #update = Update.from_result(request)
-        #print update.message
-	print ' parsing message ...'
-	print type(request)
+        # print update.message
+        print ' parsing message ...'
+        print type(request)
         response = self.getReplyForUpdate(request)
         print ' parsing message done!'
-	self.sendMessageToUser(response, request['message']['from']['id'])
+        self.sendMessageToUser(response, request['message']['from']['id'])
         self.log('END prosessing message on hook')
-        self.state['offset'] = update.update_id + 1
+        self.state['offset'] = request['update_id'] + 1
 
     def sendMessageToUser(self, text, user_id):
         self.bot.send_message(
-            sender,
+            user_id,
             text).wait()
 
     def getTemperatureString(self):
@@ -121,7 +121,7 @@ class r3bot():
             update['message']['text'],
             update['message']['from']['first_name'])
 
-    def logUpdate(update):
+    def logUpdate(self, update):
         """
         Does a quick log of the received message
         to stdout.
