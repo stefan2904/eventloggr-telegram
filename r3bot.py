@@ -23,7 +23,7 @@ class r3bot():
         Setup the bot
         """
         self.bot = TelegramBot(apitoken)
-        self.bot.update_bot_info().wait()
+        #self.bot.update_bot_info().wait()
 
     def initHook(self, hook):
         self.log('initializing callback hook!')
