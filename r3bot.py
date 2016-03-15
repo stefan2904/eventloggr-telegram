@@ -32,12 +32,15 @@ class r3bot():
 
     def processHookRequest(self, request):
         self.log('received request on HOOK:')
+        print request
+        print request.form
+        print request.form.to_dict()
         update = Update.from_result(request.form.to_dict())
         print update.message
         response = self.getReplyForUpdate(update)
         self.sendMessageToUser(response, update)
         self.log('END prosessing message on hook')
-        state['offset'] = update.update_id + 1
+        self.state['offset'] = update.update_id + 1
 
     def sendMessageToUser(self, text, update):
         self.bot.send_message(
