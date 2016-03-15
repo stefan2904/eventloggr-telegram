@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from twx.botapi import TelegramBot
+from twx.botapi import TelegramBot, Update
 import r3door
 import r3temp
 import json
@@ -32,7 +32,15 @@ class r3bot():
 
     def processHookRequest(self, request):
         self.log('received request on HOOK:')
-        print request
+        update = Update.from_result(request)
+        # print update.message
+        response = self.getReplyForUpdate(update)
+        self.sendMessageToUser(response, update)
+
+    def sendMessageToUser(self, text, update):
+        self.bot.send_message(
+            update.message.sender.id,
+            text).wait()
 
     def getTemperatureString(self):
         """
