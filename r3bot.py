@@ -35,8 +35,11 @@ class r3bot():
         print request
         #update = Update.from_result(request)
         #print update.message
+	print ' parsing message ...'
+	print type(request)
         response = self.getReplyForUpdate(request)
-        self.sendMessageToUser(response, request['message']['from']['id'])
+        print ' parsing message done!'
+	self.sendMessageToUser(response, request['message']['from']['id'])
         self.log('END prosessing message on hook')
         self.state['offset'] = update.update_id + 1
 
