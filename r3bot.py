@@ -23,7 +23,7 @@ class r3bot():
         Setup the bot
         """
         self.bot = TelegramBot(apitoken)
-        #self.bot.update_bot_info().wait()
+        # self.bot.update_bot_info().wait()
 
     def initHook(self, hook):
         self.log('initializing callback hook!')
@@ -33,6 +33,87 @@ class r3bot():
     def processHookRequest(self, request):
         self.log('received request on HOOK:')
         print request
+
+    def getTemperatureString(self):
+        """
+        Retrieve temperature data
+        using the r3 Space-API.
+        """
+        api = r3temp.r3temp()
+        return '''
+        Temperatures in r3:
+        Temp Outside:           %s°C
+        Temp in LoTHR:          %s°C
+        Temp in CX:             %s°C
+        Temp in OLGA Room:      %s°C
+        Temp in OLGA freezer:   %s°C
+        Temp in UPS Battery:    %s°C
+        ''' % (
+               api.getTempByName('Temp@Outside'),
+               api.getTempByName('Temp@LoTHR'),
+               api.getTempByName('Temp@CX'),
+               api.getTempByName('Temp@OLGA Room'),
+               api.getTempByName('Temp@OLGA freezer'),
+               api.getTempByName('Temp@UPS Yellow Battery')
+        )
+
+    def getDoorstatusString(self):
+        """
+        Retrieve door status data
+        using the r3 Space-API.
+        """
+        api = r3door.r3door()
+        status = api.getDoorstatus()
+        return '''
+        Doorstatus of r3 frontdoor:
+        locked: %s
+        kontakted: %s
+        ''' % (
+            status[0], status[1]
+        )
+
+    def match(self, text, words):
+        """
+        Returns True if any of 'words' is contained
+        in 'text', otherwise returns False.
+        """
+        return any(x in text for x in words)
+
+    strings_door = ['door', 'tuer', u'tür', 'status']
+    strings_temp = ['temp', 'temperature', 'temperatur', 'status']
+
+    def getReplyForMessage(self, msg, sender):
+        """
+        Does the magic. Returns a string.
+        """
+        msgLower = msg.lower()
+        if self.match(msgLower, self.strings_door):
+            return self.getDoorstatusString()
+        elif self.match(msgLower, self.strings_temp):
+            return self.getTemperatureString()
+        else:
+            return '''
+            Sorry, %s. I don\'t understand that (so far?) ...''' % (
+                sender)
+
+    def getReplyForUpdate(self, update):
+        """
+        Hands the given update to getReplyForMessage()
+        and logs it using logupdate().
+        Returns the returned string.
+        """
+        self.logUpdate(update)
+        return self.getReplyForMessage(
+            update.message.text,
+            update.message.sender.first_name)
+
+    def logUpdate(update):
+        """
+        Does a quick log of the received message
+        to stdout.
+        """
+        self.log('%s: %s' % (
+            update.message.sender.first_name, update.message.text))
 
     def __saveBotState(self):
         """
