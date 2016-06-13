@@ -34,8 +34,8 @@ class r3temp():
         try:
             return filter(lambda x: x['name'] == name, self.data[
                           'sensors']['temperature'])[0]['value']
-        except KeyError:
-            return 42
+        except Exception:
+            return 'error'
 
     def getTemp(self):
         return self.getTempByName('Temp@LoTHR')
