@@ -16,6 +16,17 @@ def hook():
     return "OK"
 
 
+@app.route('/broadcast/', methods=['POST'])
+def broadcast():
+    msg, error = bot.processBroadcast(request.form)
+    if msg:
+        return msg
+    elif error:
+        return error
+    else:
+        return 'Something went wrong :('
+
+
 @app.route("/")
 def index():
     return "Yay! realraum Telegram Hook working!"

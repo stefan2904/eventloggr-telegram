@@ -16,7 +16,7 @@ class r3bot():
         self.log('initializing r3bot done!')
 
     def log(self, text):
-        print text
+        print(text)
 
     def setupBot(self, apitoken):
         """
@@ -31,17 +31,27 @@ class r3bot():
         self.log('initialized callback hook!')
 
     def processHookRequest(self, request):
+        if not self.isMessageNew(request['update_id']):
+            print('Message is not new. Skipping ...')
+            # return
         self.log('received request on HOOK:')
-        print request
-        #update = Update.from_result(request)
+        print(request)
+        # update = Update.from_result(request)
         # print update.message
-        print ' parsing message ...'
-        print type(request)
+        print(' parsing message ...')
+        # print type(request)
         response = self.getReplyForUpdate(request)
-        print ' parsing message done!'
+        print(' parsing message done!')
         self.sendMessageToUser(response, request['message']['from']['id'])
         self.log('END prosessing message on hook')
-        self.state['offset'] = request['update_id'] + 1
+        self.updateOffset(request['update_id'])
+
+    def updateOffset(self, update_id):
+        self.state['offset'] = update_id + 1
+        self.__saveBotState()
+
+    def isMessageNew(self, update_id):
+        return update_id < self.state['offset']
 
     def sendMessageToUser(self, text, user_id):
         self.bot.send_message(
@@ -96,7 +106,7 @@ class r3bot():
     strings_door = ['door', 'tuer', u'tür', 'status']
     strings_temp = ['temp', 'temperature', 'temperatur', 'status']
 
-    def getReplyForMessage(self, msg, sender):
+    def getReplyForMessage(self, msg, sender, sender_id):
         """
         Does the magic. Returns a string.
         """
@@ -105,7 +115,12 @@ class r3bot():
             return self.getDoorstatusString()
         elif self.match(msgLower, self.strings_temp):
             return self.getTemperatureString()
+        elif 'unsubscribe' in msgLower:
+            return self.unsubscribeUser(msg, sender_id)
+        elif 'subscribe' in msgLower:
+            return self.subscribeUser(msg, sender_id)
         else:
+            print('unknown message: %s' % msg)
             return '''
             Sorry, %s. I don\'t understand that (so far?) ...''' % (
                 sender)
@@ -119,7 +134,68 @@ class r3bot():
         self.logUpdate(update)
         return self.getReplyForMessage(
             update['message']['text'],
-            update['message']['from']['first_name'])
+            update['message']['from']['first_name'],
+            update['message']['from']['id'])
+
+    def __getSubscriptionLists(self):
+        if 'subscriptions' not in self.state:
+            return None
+        return ', '.join(self.state['subscriptions'])
+
+    def __parseSubscriptionStr(self, msg):
+        words = msg.split()
+        if len(words) != 2:
+            sublists = self.__getSubscriptionLists()
+            return 'Available lists: %s' % sublists, None
+        return None, words[1]
+
+    def processBroadcast(self, request):
+        if 'list' not in request or 'text' not in request:
+            print request
+            return None, 'ERROR: Invalid request.'
+        return self.broadcastToList(request['list'], request['text'])
+
+    def broadcastToList(self, sublist, text):
+        if 'subscriptions' not in self.state:
+            return None, 'ERROR: no subscription lists!'
+        if sublist not in self.state['subscriptions']:
+            return None, 'ERROR: subscription list %s not found!' % sublist
+        i = 0
+        for user_id in self.state['subscriptions'][sublist]:
+            self.sendMessageToUser(text, user_id)
+            i += 1
+        return 'successfully send to %d users' % i, None
+
+    def subscribeUser(self, msg, sender_id):
+        if 'subscriptions' not in self.state:
+            self.state['subscriptions'] = dict()
+        error, sublist = self.__parseSubscriptionStr(msg)
+        if error is not None:
+            return error
+        print('subscribing to %s ...' % sublist)
+        if sublist not in self.state['subscriptions']:
+            return 'list %s does not exist!' % sublist
+            # self.state['subscriptions'][sublist] = []
+        if sender_id in self.state['subscriptions'][sublist]:
+            return 'already subscribed to %s list ...' % sublist
+        self.state['subscriptions'][sublist].append(sender_id)
+        self.__saveBotState()
+        return 'successfully subscribed to %s list!' % sublist
+
+    def unsubscribeUser(self, msg, sender_id):
+        if 'subscriptions' not in self.state:
+            return 'nothing to do: no subscription lists!'
+        error, sublist = self.__parseSubscriptionStr(msg)
+        if error is not None:
+            return error
+        if sublist not in self.state['subscriptions']:
+            return 'nothing to do: subscription list %s not found!' % sublist
+        print('unsubscribing from %s ...' % sublist)
+        if sender_id not in self.state['subscriptions'][sublist]:
+            return 'not subscribed to %s list ...' % sublist
+        self.state['subscriptions'][sublist].remove(sender_id)
+        self.__saveBotState()
+        return 'successfully unsubscribed from %s list!' % sublist
 
     def logUpdate(self, update):
         """
