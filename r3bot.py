@@ -177,8 +177,8 @@ class r3bot():
             return error
         print('subscribing to %s ...' % sublist)
         if sublist not in self.state['subscriptions']:
-            return 'list %s does not exist!' % sublist
-            # self.state['subscriptions'][sublist] = []
+            # return 'list %s does not exist!' % sublist
+            self.state['subscriptions'][sublist] = []
         if sender_id in self.state['subscriptions'][sublist]:
             return 'already subscribed to %s list ...' % sublist
         self.state['subscriptions'][sublist].append(sender_id)
