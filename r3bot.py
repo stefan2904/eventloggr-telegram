@@ -32,6 +32,8 @@ class r3bot():
         self.log('initialized callback hook!')
 
     def processHookRequest(self, request):
+        # need to reaload every time since there are multiple workers ...
+        self.__loadBotState()
         if not self.isMessageNew(request['update_id']):
             print('Message is not new. Skipping ...')
             # return
@@ -135,8 +137,6 @@ class r3bot():
         Returns the returned string.
         """
         self.logUpdate(update)
-        # need to reaload every time since there are multiple workers ...
-        self.__loadBotState()
         return self.getReplyForMessage(
             update['message']['text'],
             update['message']['from']['first_name'],
@@ -158,6 +158,8 @@ class r3bot():
         if 'list' not in request or 'text' not in request:
             print request
             return None, 'ERROR: Invalid request.'
+        # need to reaload every time since there are multiple workers ...
+        self.__loadBotState()
         return self.broadcastToList(request['list'], request['text'])
 
     def broadcastToList(self, sublist, text):
