@@ -28,6 +28,7 @@ class r3bot():
     def initHook(self, hook):
         self.log('initializing callback hook %s ...' % hook)
         self.bot.set_webhook(url=hook)
+        self.hook = hook
         self.log('initialized callback hook!')
 
     def processHookRequest(self, request):
@@ -119,6 +120,8 @@ class r3bot():
             return self.unsubscribeUser(msg, sender_id)
         elif 'subscribe' in msgLower:
             return self.subscribeUser(msg, sender_id)
+        elif 'hook' in msgLower:
+            return self.hook
         else:
             print('unknown message: %s' % msg)
             return '''
