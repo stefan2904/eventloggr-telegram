@@ -51,7 +51,7 @@ class r3bot():
         self.__saveBotState()
 
     def isMessageNew(self, update_id):
-        return update_id < self.state['offset']
+        return update_id >= self.state['offset']
 
     def sendMessageToUser(self, text, user_id):
         self.bot.send_message(
