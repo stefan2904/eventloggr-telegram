@@ -135,6 +135,8 @@ class r3bot():
         Returns the returned string.
         """
         self.logUpdate(update)
+        # need to reaload every time since there are multiple workers ...
+        self.__loadBotState()
         return self.getReplyForMessage(
             update['message']['text'],
             update['message']['from']['first_name'],
