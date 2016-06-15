@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request
-import config
+try:
+    import config
+except:
+    import envconfig as config
 from r3bot import r3bot
 
 app = Flask(__name__)
