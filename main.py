@@ -6,10 +6,10 @@ try:
     import config
 except:
     import envconfig as config
-from r3bot import r3bot
+from tbot import tbot
 
 app = Flask(__name__)
-bot = r3bot(config.APITOKEN)
+bot = tbot(config.APITOKEN)
 bot.initHook(config.HOOKURL)
 
 
@@ -32,7 +32,7 @@ def broadcast():
 
 @app.route("/")
 def index():
-    return "Yay! realraum Telegram Hook working!"
+    return "Yay! Telegram Hook working!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=PORT)

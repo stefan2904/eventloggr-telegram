@@ -7,7 +7,7 @@ import r3temp
 import json
 
 
-class r3bot():
+class tbot():
 
     def __init__(self, apitoken):
         self.log('initializing r3bot ...')
