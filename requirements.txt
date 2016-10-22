@@ -1,3 +1,4 @@
 gunicorn
 twx.botapi==2.1.0
 Flask==0.10.1
+itsdangerous==0.24

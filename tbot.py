@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from twx.botapi import TelegramBot, Update
-import r3door
-import r3temp
 import json
 
+from twx.botapi import TelegramBot
+from itsdangerous import JSONWebSignatureSerializer, BadSignature
 
 class tbot():
 
-    def __init__(self, apitoken):
+    def __init__(self, apitoken, secret, owner_user_id):
         self.log('initializing r3bot ...')
+        self.secret = secret
+        self.owner_user_id = owner_user_id
         self.setupBot(apitoken)
         self.__loadBotState()
         self.log('initializing r3bot done!')
@@ -61,43 +62,6 @@ class tbot():
             user_id,
             text).wait()
 
-    def getTemperatureString(self):
-        """
-        Retrieve temperature data
-        using the r3 Space-API.
-        """
-        api = r3temp.r3temp()
-        return '''
-        Temperatures in r3:
-        Temp Outside:           %s°C
-        Temp in LoTHR:          %s°C
-        Temp in CX:             %s°C
-        Temp in OLGA Room:      %s°C
-        Temp in OLGA freezer:   %s°C
-        Temp in UPS Battery:    %s°C
-        ''' % (
-               api.getTempByName('Temp@Outside'),
-               api.getTempByName('Temp@LoTHR'),
-               api.getTempByName('Temp@CX'),
-               api.getTempByName('Temp@OLGA Room'),
-               api.getTempByName('Temp@OLGA freezer'),
-               api.getTempByName('Temp@UPS Yellow Battery')
-        )
-
-    def getDoorstatusString(self):
-        """
-        Retrieve door status data
-        using the r3 Space-API.
-        """
-        api = r3door.r3door()
-        status = api.getDoorstatus()
-        return '''
-        Doorstatus of r3 frontdoor:
-        locked: %s
-        kontakted: %s
-        ''' % (
-            status[0], status[1]
-        )
 
     def match(self, text, words):
         """
@@ -106,24 +70,19 @@ class tbot():
         """
         return any(x in text for x in words)
 
-    strings_door = ['door', 'tuer', u'tür', 'status']
-    strings_temp = ['temp', 'temperature', 'temperatur', 'status']
-
     def getReplyForMessage(self, msg, sender, sender_id):
         """
         Does the magic. Returns a string.
         """
         msgLower = msg.lower()
-        if self.match(msgLower, self.strings_door):
-            return self.getDoorstatusString()
-        elif self.match(msgLower, self.strings_temp):
-            return self.getTemperatureString()
-        elif 'unsubscribe' in msgLower:
+        if 'unsubscribe' in msgLower:
             return self.unsubscribeUser(msg, sender_id)
         elif 'subscribe' in msgLower:
             return self.subscribeUser(msg, sender_id)
         elif 'hook' in msgLower:
             return self.hook
+        elif 'whoami' in msgLower:
+            return str(sender_id)
         else:
             print('unknown message: %s' % msg)
             return '''
@@ -212,6 +171,24 @@ class tbot():
         self.log('%s: %s' % (
             update['message']['text'],
             update['message']['from']['first_name']))
+
+
+    def processEventloggrMessage(self, input):
+
+        if self.owner_user_id is None:
+            return None, 'No owner set yet.'
+        if 'data' not in input:
+            return None, 'ERROR: no data found in request.'
+        serializer = JSONWebSignatureSerializer(self.secret)
+        try:
+            data = serializer.loads(input['data'])
+        except BadSignature:
+            return None, 'ERROR: bad signature.'
+
+        text = 'News from {service}: {source} wrote\n{text}'.format(service=data['service'], source=data['source'], text=data['text'])
+
+        self.sendMessageToUser(text, self.owner_user_id)
+        return 'OK', None
 
     def __saveBotState(self):
         """

@@ -9,7 +9,7 @@ except:
 from tbot import tbot
 
 app = Flask(__name__)
-bot = tbot(config.APITOKEN)
+bot = tbot(config.APITOKEN, config.SECRET, config.OWNER)
 bot.initHook(config.HOOKURL)
 
 
@@ -30,9 +30,20 @@ def broadcast():
         return 'Something went wrong :('
 
 
+@app.route('/eventloggr/', methods=['POST'])
+def eventloggr():
+    msg, error = bot.processEventloggrMessage(request.form)
+    if msg:
+        return msg
+    elif error:
+        return error
+    else:
+        return 'Something went wrong :('
+
+
 @app.route("/")
 def index():
     return "Yay! Telegram Hook working!"
 
 if __name__ == "__main__":
-    app.run(debug=True, port=PORT)
+    app.run(debug=True, port=config.PORT)
