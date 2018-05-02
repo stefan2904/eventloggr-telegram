@@ -71,11 +71,15 @@ class tbot():
 
         if 'hook' in msgLower:
             return self.hook
+        elif 'owner' in msgLower:
+            return str(self.owner_user_id)
         elif 'whoami' in msgLower:
-            return '''
-            name: {}
+            return '''name: {}
             id: {}
-            '''.format(sender, str(sender_id))
+            you are{}the bot's owner.
+            '''.format(sender,
+                       str(sender_id),
+                       '' if sender_id == self.owner_user_id else ' NOT ')
         else:
             print('unknown message: %s' % msg)
             return '''
