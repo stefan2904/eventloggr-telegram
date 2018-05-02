@@ -79,7 +79,7 @@ class tbot():
             you are{}the bot's owner.
             '''.format(sender,
                        str(sender_id),
-                       '' if sender_id == self.owner_user_id else ' NOT ')
+                       '' if str(sender_id) == self.owner_user_id else ' NOT ')
         else:
             print('unknown message: %s' % msg)
             return '''
