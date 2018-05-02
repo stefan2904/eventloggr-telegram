@@ -19,17 +19,6 @@ def hook():
     return "OK"
 
 
-@app.route('/broadcast/', methods=['POST'])
-def broadcast():
-    msg, error = bot.processBroadcast(request.form)
-    if msg:
-        return msg
-    elif error:
-        return error
-    else:
-        return 'Something went wrong :('
-
-
 @app.route('/eventloggr/', methods=['POST'])
 def eventloggr():
     msg, error = bot.processEventloggrMessage(request.form)
@@ -46,4 +35,4 @@ def index():
     return "Yay! Telegram Hook working!"
 
 if __name__ == "__main__":
-    app.run(debug=True, port=config.PORT)
+    app.run(debug=config.DEBUG, port=config.PORT)
