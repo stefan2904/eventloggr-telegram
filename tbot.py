@@ -76,10 +76,10 @@ class tbot():
         elif 'whoami' in msgLower:
             return '''name: {}
             id: {}
-            you are{}the bot's owner.
+            you are{} the bot's owner.
             '''.format(sender,
                        str(sender_id),
-                       '' if str(sender_id) == self.owner_user_id else ' NOT ')
+                       '' if str(sender_id) == self.owner_user_id else ' NOT')
         else:
             print('unknown message: %s' % msg)
             return '''
